@@ -16,12 +16,12 @@ public class BankConnect {
 	static{
 		conn = null;
 		username = "postgres";
-		password = "password";
+		password = "root";
 		port = "5432";
 		host = "localhost";
 		database = "group2db";
 	}
-	public static synchronized Connection getConnection(){
+	public synchronized static Connection getConnection(){
 		try {
 			Class.forName("org.postgresql.Driver");
 		} catch (ClassNotFoundException e1) {
@@ -39,7 +39,7 @@ public class BankConnect {
 			try {
 				conn = DriverManager.getConnection(connectionURL, props);			
 				if(conn != null){
-					conn.setAutoCommit(false);
+					conn.setAutoCommit(true);
 					conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);	
 				}				
 			} catch (SQLException e) {

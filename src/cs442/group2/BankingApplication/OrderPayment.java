@@ -33,8 +33,7 @@ public class OrderPayment {
 		return amountPaid;
 	}
 
-	public static List<OrderPayment> getOrderPayments(int orderID,
-			int customerID) {
+	public static List<OrderPayment> getOrderPayments(int orderID, int customerID) {
 		ArrayList<OrderPayment> paymentOptions = new ArrayList<OrderPayment>();
 		
 		// Add DB Code

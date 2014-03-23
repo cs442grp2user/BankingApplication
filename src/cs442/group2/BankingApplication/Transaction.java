@@ -18,8 +18,9 @@ public class Transaction {
 	private Date timestamp;
 
 	public static Order makeTransaction(Customer customer,
-			List<AccountChoice> fromAccountChoices, Cart cart) {
+		List<AccountChoice> fromAccountChoices, Cart cart) {
 		ArrayList<Transaction> transactions = new ArrayList<Transaction>();
+		// customer, AccountChoice(account,deductionAmount),cart
 		// fromAccountChoices contains list of AccountChoice objects where each
 		// object will give you account and the amount you want to deduct from
 		// that account

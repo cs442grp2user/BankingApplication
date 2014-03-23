@@ -85,15 +85,15 @@ public class Customer {
 	}
 
 	public void addItemToCart(Item item, int quantity) {
-		cart.addItem(item, quantity);
+		cart.addItemToCart(item, quantity);
 	}
 
 	public void removeItemFromCart(Item item) {
-		cart.removeItem(item);
+		cart.removeItemFromCart(item);
 	}
 
 	public List<Item> viewCart() {
-		return cart.getAllItems();
+		return cart.getAllItemsInCart();
 	}
 
 	public boolean transfer(Account fromAccount, Account toAccount,
