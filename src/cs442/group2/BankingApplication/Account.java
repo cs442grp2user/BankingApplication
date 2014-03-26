@@ -31,7 +31,7 @@ public class Account implements Comparable<Account> {
 		this.pin = pin;
 	}
 	
-	//there is a bug
+	
 	public static Account getAccount(int accountID) {
 		Account account = null;
 		// Add DB code.
@@ -390,7 +390,7 @@ public class Account implements Comparable<Account> {
 	
 	public static void main(String[] args)
 	{
-		Account account = Account.getAccount(19);	
+		Account account = Account.getAccount(34);	
 		System.out.println("Account ID is: "+account.getAccountID());
 		System.out.println("Account type is :"+account.getAccountType());
 		System.out.println("Account belongs to customer :"+account.getCustomerID());
