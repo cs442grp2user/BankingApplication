@@ -116,10 +116,10 @@ public class Item  {
 	return itemName;
 	}
 	
-	public static List<Item> getItemCost(int itemID) { 
-		ArrayList<Item> result = new ArrayList<Item>();
+	public static Double getItemCost(int itemID) { 
+		//ArrayList<Item> result = new ArrayList<Item>();
 		
-		
+		Double itemcost = 0.0;
 			String SQLSearchItem = "Select itemcost FROM item WHERE itemID=?";
 			
 			System.out.println(SQLSearchItem);
@@ -137,7 +137,8 @@ public class Item  {
 						}
 						
 						while(rs.next()){
-							float itemcost = rs.getFloat("itemcost"); 
+							itemcost = rs.getDouble("itemcost"); 
+							
 							System.out.println(itemcost);
 						}
 						
@@ -157,7 +158,7 @@ public class Item  {
 
 			
 		
-	return result;
+	return itemcost;
 	}
 	
 	public static List<Item> searchItem(String itemName) { 
