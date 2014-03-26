@@ -74,10 +74,8 @@ public class Item  {
 	}
 	
 	
-	public static List<Item> getItemName(int itemID) { 
-		ArrayList<Item> result = new ArrayList<Item>();
-		
-		
+	public String getItemName(int itemID) { 
+				
 			String SQLSearchItem = "Select itemName FROM item WHERE itemID=?";
 			
 			System.out.println(SQLSearchItem);
@@ -115,7 +113,7 @@ public class Item  {
 
 			
 		
-	return result;
+	return itemName;
 	}
 	
 	public static List<Item> getItemCost(int itemID) { 
