@@ -451,16 +451,25 @@ public class Transaction {
 		cust2.addItemToCart(item3, 2);
 		
 		//Choose option for payment
-		ArrayList<AccountChoice> accChoices = new ArrayList<AccountChoice>();
-		AccountChoice choice1 = new AccountChoice(acc1, 200.00);
-		AccountChoice choice2 = new AccountChoice(acc3, 113.21);
-		accChoices.add(choice1);
-		accChoices.add(choice2);
+		//ArrayList<AccountChoice> accChoices = new ArrayList<AccountChoice>();
+		//AccountChoice choice1 = new AccountChoice(acc1, 200.00);
+		//AccountChoice choice2 = new AccountChoice(acc3, 113.21);
+		//accChoices.add(choice1);
+		//accChoices.add(choice2);
 		
-		boolean orderstatus = cust2.order(accChoices);
-		if(orderstatus)
-			System.out.println("Order placed successfully");
+		//boolean orderstatus = cust2.order(accChoices);
+		//if(orderstatus)
+			//System.out.println("Order placed successfully");
 		
+		List<Order> order_hist = cust2.orderHistory();
+		for(Order ord : order_hist) {
+			System.out.println("Order history for customer ID: "+cust2.getCustomerID()+ "for: "+ord.getOrderID());
+			
+			List<OrderPayment> paymentoptions = ord.getPaymentOptions();
+			
+			for(OrderPayment paymenttransaction : paymentoptions)
+				System.out.println("Payment done for OrderId :"+ord.getOrderID()+ "with customertranscationid :"+paymenttransaction.getTransactionID());
+		}
 	}
 
 }

@@ -99,8 +99,16 @@ public class Customer {
 		return customer;
 	}
 
-	public void addItemToCart(Item item, int quantity) {
-		cart.addItem(item, quantity);
+	public boolean addItemToCart(Item item, int quantity) {
+		try {
+			cart.addItem(item, quantity);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		
+		return true;
 	}
 
 	public void removeItemFromCart(Item item) {
@@ -168,8 +176,8 @@ public class Customer {
 				//This is a new Order instance not yet put inside the ArrayList
 				else {
 					ArrayList<OrderPayment> paymentOptions = new ArrayList<OrderPayment>();
-					OrderPayment op = new OrderPayment(orderid, custid, transactionid, amtPaidinTransac);
-					paymentOptions.add(op);
+					//OrderPayment op = new OrderPayment(orderid, custid, transactionid, amtPaidinTransac);
+					//paymentOptions.add(op);
 					
 					Order ord = new Order(orderid, custid, rs.getDate("timestamp"), paymentOptions, rs.getDouble("orderpayment"));
 					orders.add(ord);
