@@ -3,11 +3,12 @@ package cs442.group2.BankingApplication;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import cs442.group2.BankingApplication.helpers.AccountChoice;
 
@@ -17,6 +18,7 @@ public class Customer {
 	private int branchID;
 	private String userName;
 	private List<Account> accounts;
+	private Cart cart;
 
 	@Override
 	public String toString() {
@@ -30,40 +32,13 @@ public class Customer {
 		return accounts;
 	}
 
-	private Cart cart;
-	
-	/**
-	 * This constructor was just created for test purpose
-	 * @param customerID
-	 * @param branchID
-	 * @param userName
-	 */
-	public Customer(int customerID, int branchID, String userName){
-		
-		this.customerID = customerID;
-		this.branchID = branchID;
-		this.userName = userName;		
-	}
-	
-	public Customer(int customerID, int branchID, String userName,
+	private Customer(int customerID, int branchID, String userName,
 			List<Account> accounts, Cart cart) {
 		this.customerID = customerID;
 		this.branchID = branchID;
 		this.userName = userName;
 		this.accounts = accounts;
 		this.cart = cart;
-	}
-
-	public int getCustomerID() {
-		return customerID;
-	}
-
-	public int getBranchID() {
-		return branchID;
-	}
-
-	public String getUserName() {
-		return userName;
 	}
 
 	public static synchronized Customer authenticate(String userName,
@@ -99,8 +74,14 @@ public class Customer {
 		return customer;
 	}
 
-	public void addItemToCart(Item item, int quantity) {
-		cart.addItem(item, quantity);
+	public boolean addItemToCart(Item item, int quantity) {
+		try {
+			cart.addItem(item, quantity);
+		} catch (Exception e) {
+
+			return false;
+		}
+		return true;
 	}
 
 	public void removeItemFromCart(Item item) {
@@ -113,79 +94,112 @@ public class Customer {
 
 	public boolean transfer(Account fromAccount, Account toAccount,
 			double amount) {
-		Transaction transaction = Transaction.makeTranction(this,
-				new AccountChoice(fromAccount, amount), toAccount);
+		Transaction transaction = null;
+		try {
+			try {
+				transaction = Transaction.makeTranction(this,
+						new AccountChoice(fromAccount, amount), toAccount);
+			} catch (Exception e) {
+				BankConnect.getConnection().rollback();
+				Reporting.err.println(e);
+			}
+
+			if (transaction != null) {
+
+				BankConnect.getConnection().commit();
+
+			}
+		} catch (Exception e) {
+			Reporting.err.println(e);
+		}
+
 		return transaction != null; // returns true if transfer successful
 	}
 
 	public boolean order(List<AccountChoice> fromAccountChoices) {
 		Order order = Transaction.makeTransaction(this, fromAccountChoices,
 				this.cart);
-		System.out.println("New Order generated is :"+order.getOrderID()+ " For Customer: "+this.getUserName());
+		Reporting.out.println("New Order generated is :" + order.getOrderID()
+				+ " For Customer: " + this.getUserName());
 		return order != null; // returns true if order successful
 	}
-	
-	public List<Item> searchItem(String productName, String category){
+
+	public List<Item> searchItem(String productName, String category) {
 		ArrayList<Item> searchProdList = new ArrayList<Item>();
-		
+
 		return searchProdList;
 	}
-	
+
 	public List<Order> orderHistory() {
 		ArrayList<Order> orders = new ArrayList<Order>();
-		HashMap<Integer, Order> orders_map = new HashMap<Integer, Order>();
+		HashMap<Integer, ArrayList<OrderPayment>> payments = new HashMap<Integer, ArrayList<OrderPayment>>();
+		HashMap<Integer, Date> orderIDtoShoppingTimeStamp = new HashMap<Integer, Date>();
+		HashMap<Integer, Double> orderIDtoTotalPayment = new HashMap<Integer, Double>();
+
 		
-		// Add DB Code
-		Connection conn = BankConnect.getConnection();
-		String select1 = "SELECT SO.orderid, SO.orderpayment, SO.timestamp,SO.customerid, OP.transactionid, OP.amountpaid "+ 
-						 "FROM shoppingorder SO, orderpayment OP "+
-						 "WHERE SO.orderid = OP.orderid AND SO.customerid = ?;";
+		String sqlOrderHistory = "SELECT * FROM shoppingorder NATURAL JOIN orderpayment NATURAL JOIN customertransaction  WHERE customerid = ?;";
 		
 		try {
-			PreparedStatement statement = conn.prepareStatement(select1);
-			statement.setInt(1, this.getCustomerID());
-			
+			Connection conn = BankConnect.getConnection();
+			PreparedStatement statement = conn.prepareStatement(sqlOrderHistory);
+			statement.setInt(1, customerID);
 			ResultSet rs = statement.executeQuery();
-			while(rs.next()) {
-				int orderid = rs.getInt("orderid");
-				int custid = rs.getInt("customerid");
-				double amtPaidinTransac = rs.getDouble("amountpaid");
-				int transactionid = rs.getInt("transactionid");
+			while(rs.next()){
 				
-				//Check whether the current order has been already accounted for
-				if(orders_map.containsKey(orderid)) {
-					OrderPayment op = new OrderPayment(orderid, 1, transactionid, amtPaidinTransac);
-					orders_map.get(orderid).getPaymentOptions().add(op);
-					
-					for(Order ord : orders) {
-						if(ord.getOrderID() == orderid) {
-							ord.getPaymentOptions().add(op);
-							break;
-						}
-						
-					}
-				}
-				//This is a new Order instance not yet put inside the ArrayList
-				else {
-					ArrayList<OrderPayment> paymentOptions = new ArrayList<OrderPayment>();
-					OrderPayment op = new OrderPayment(orderid, custid, transactionid, amtPaidinTransac);
-					paymentOptions.add(op);
-					
-					Order ord = new Order(orderid, custid, rs.getDate("timestamp"), paymentOptions, rs.getDouble("orderpayment"));
-					orders.add(ord);
-					orders_map.put(orderid, ord);
-				}
+				int orderID = rs.getInt("orderid");
+				int fromAccountID = rs.getInt("fromaccountid");
 				
+				int transactionID = rs.getInt("transactionid");
+				
+				Date dateTime = rs.getDate("shoppingtimestamp");
+				orderIDtoShoppingTimeStamp.put(orderID, dateTime);
+				
+				double totalAmount = rs.getDouble("orderpayment");
+				orderIDtoTotalPayment.put(orderID, totalAmount);
+				
+				double amountPaid = rs.getDouble("amountpaid");
+				
+				OrderPayment payment = new OrderPayment(orderID, fromAccountID, transactionID, amountPaid);
+				if(!payments.containsKey(orderID)){
+					ArrayList<OrderPayment> orderPayments = new ArrayList<OrderPayment>();
+					orderPayments.add(payment);
+					payments.put(orderID, orderPayments);
+				} else {
+					ArrayList<OrderPayment> orderPayments = payments.get(orderID);
+					orderPayments.add(payment);
+					payments.put(orderID, orderPayments);
+				}
 			}
-		} 
-		catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			
+			Set<Integer> orderIDs = payments.keySet();
+			for(int orderID : orderIDs){
+				ArrayList<OrderPayment> orderPayments = payments.get(orderID);
+				Order order = new Order(orderID, this.getCustomerID(), orderIDtoShoppingTimeStamp.get(orderID), orderPayments, orderIDtoTotalPayment.get(orderID));
+				orders.add(order);
+			}
+			
+		} catch (Exception e) {
+			Reporting.err.println(e);
 		}
 		
 		return orders;
 	}
 
+	public int getCustomerID() {
+		return customerID;
+	}
+
+	public int getBranchID() {
+		return branchID;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public Cart getCart() {
+		return cart;
+	}
 
 	private static String customerLogin = "SELECT customerID, branchID FROM Customer NATURAL JOIN Authentication WHERE userName = ? AND password = md5(?);";
 

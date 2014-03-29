@@ -7,17 +7,17 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings({ "unused" })
 public class OrderPayment {
+
 	private int orderID;
-	private static int accountID; // Where payment was made to Portal user
+	private int accountID; // Where payment was made to Portal user
 	private int transactionID;
 	private double amountPaid;
-
-	public static void main(String [ ] args)
-	{
-
-	      //getOrderPayments(1,3);
-	      makeOrderPayments(1,2,6,10);
+	
+	@Override
+	public String toString() {
+		return String.format("OrderPayment(for orderID=%d) paid %4.2f from (accountID=%d) using (transactionID=%d)", orderID, amountPaid, accountID, transactionID);
 	}
 
 	public OrderPayment(int orderID, int accountID, int transactionID,
@@ -44,99 +44,33 @@ public class OrderPayment {
 		return amountPaid;
 	}
 
-	public static List<OrderPayment> makeOrderPayments(int customerID,int orderID,int transactionID,float amountPaid) {
-
-		ArrayList<OrderPayment> paymentOptions = new ArrayList<OrderPayment>();
-		String SQLInsertItem = "INSERT INTO OrderPayment VALUES (?,?,?) ";
-		String SearchTableSQL2 = "SELECT * FROM OrderPayment WHERE orderid = ?";
-		try{
-			Connection conn = BankConnect.getConnection();
-			conn.setAutoCommit(true);
-			try{
-				if(conn != null){
-					PreparedStatement statement = conn.prepareStatement(SQLInsertItem);
-					statement.setInt(1, orderID);
-					statement.setInt(2, transactionID);
-					statement.setFloat(3, amountPaid);
-					try{
-						statement.executeUpdate();
-					} catch (SQLException e){
-						System.out.println(e);
-					}
-
-					PreparedStatement statement2 = conn.prepareStatement(SearchTableSQL2);
-					statement2.setInt(1, orderID);
-					ResultSet rs=statement2.executeQuery();
-
-					conn.commit();
-					while(rs.next()){
-						//Retrieve by column name
-						orderID = rs.getInt("orderid");
-						 transactionID = rs.getInt("transactionid");
-						double amountpaid = rs.getDouble("amountpaid");
-						System.out.println(orderID+" "+ transactionID+" "+amountpaid);
-						OrderPayment op = new OrderPayment( orderID, accountID,transactionID, amountpaid);
-						paymentOptions.add(op);
-					}      
-				}
-			}
-			catch(SQLException e){
-				Reporting.err.println(e);
-				conn.rollback();
-			}
-			finally{
-				//conn.commit();
-			}   
-		}
-		catch(SQLException e){
-			Reporting.err.println(e);
-		}
-
-		return paymentOptions;
-	}
-
-
-
-
-
-
 	public static List<OrderPayment> getOrderPayments(int orderID,
 			int customerID) {
 		ArrayList<OrderPayment> paymentOptions = new ArrayList<OrderPayment>();
-
-		// Add DB Code
-		String SQLSearchItem = "Select * FROM orderpayment WHERE orderid = ? ";
-		try{
+		try {
 			Connection conn = BankConnect.getConnection();
-			try{
-				if(conn != null){
-					PreparedStatement statement = conn.prepareStatement(SQLSearchItem);
-					statement.setInt(1, orderID);
-					ResultSet rs =  statement.executeQuery();
-					while(rs.next()){
-						//Retrieve by column name
-						orderID = rs.getInt("orderid");
-						int transactionID = rs.getInt("transactionid");
-						double amountpaid = rs.getDouble("amountpaid");
-						System.out.println(orderID+" "+ transactionID+" "+amountpaid);
-						OrderPayment op = new OrderPayment( orderID, accountID,transactionID, amountpaid);
-						paymentOptions.add(op);
-					}      
-				}
+			PreparedStatement statement = conn
+					.prepareStatement(sqlSelectOrderPayment);
+			statement.setInt(1, customerID);
+			statement.setInt(2, orderID);
+			ResultSet rs = statement.executeQuery();
+			while (rs.next()) {
+
+				int accountID = rs.getInt("fromAccountID");
+				int transactionID = rs.getInt("transactionID");
+				double amountPaid = rs.getDouble("amountPaid");
+
+				OrderPayment payment = new OrderPayment(orderID, accountID,
+						transactionID, amountPaid);
+				paymentOptions.add(payment);
 			}
-			catch(SQLException e){
-				Reporting.err.println(e);
-				conn.rollback();
-			}
-			finally{
-				conn.close();
-			}   
-		}
-		catch(SQLException e){
+		} catch (Exception e) {
 			Reporting.err.println(e);
 		}
 
 		return paymentOptions;
 
 	}
+
+	private static String sqlSelectOrderPayment = "SELECT * FROM ShoppingOrder NATURAL JOIN OrderPayment NATURAL JOIN CustomerTransaction WHERE customerID = ? AND orderID = ?;";
 }
