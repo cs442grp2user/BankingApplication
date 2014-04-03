@@ -12,8 +12,8 @@ public class InsufficientBalanceException extends RuntimeException {
 	public InsufficientBalanceException(Account account, double deductAmount) {
 		super();
 		this.message = "Total deductAmount: " + deductAmount
-				+ "is more than Account(" + account.getAccountID()
-				+ " ) balance ";
+				+ " is more than Account(accountID = " + account.getAccountID()
+				+ ") balance";
 	}
 
 	@Override
