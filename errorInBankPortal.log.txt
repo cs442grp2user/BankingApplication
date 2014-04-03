@@ -1,1 +1,7 @@
-Tue Mar 11 21:08:55 CDT 2014
+Fri Mar 28 19:58:34 CDT 2014
+org.postgresql.util.PSQLException: ERROR: column "cartquantity" of relation "cart" does not exist
+  Position: 38
+org.postgresql.util.PSQLException: ERROR: column "cartquantity" of relation "cart" does not exist
+  Position: 38
+org.postgresql.util.PSQLException: ERROR: column "cartquantity" of relation "cart" does not exist
+  Position: 38

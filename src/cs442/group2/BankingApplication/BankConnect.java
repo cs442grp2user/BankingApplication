@@ -16,7 +16,7 @@ public class BankConnect {
 	static{
 		conn = null;
 		username = "postgres";
-		password = "password";
+		password = "passwd1234";
 		port = "5432";
 		host = "localhost";
 		database = "group2db";
